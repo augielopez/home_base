@@ -3,10 +3,23 @@ import AppleWidget from '@/components/auth/AppleWidget.vue';
 import GoogleWidget from '@/components/auth/GoogleWidget.vue';
 import Logo from '@/components/landing/LogoWidget.vue';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import * as auth from '@/lib/api/auth';
 
-const email = ref('');
+const username = ref('');
 const password = ref('');
 const remember = ref(false);
+const router = useRouter();
+
+async function onSubmit() {
+  try {
+    await auth.login(username.value, password.value);
+    router.push({ path: '/' });
+  } catch (err) {
+    console.error('Login failed', err);
+    alert(err?.body?.error || 'Login failed');
+  }
+}
 </script>
 
 <template>
@@ -27,8 +40,8 @@ const remember = ref(false);
                             <span class="body-small text-surface-400 dark:text-surface-600">or</span>
                             <span class="flex-1 h-[1px] bg-surface-200 dark:bg-surface-800" />
                         </div>
-                        <form>
-                            <InputText type="text" v-model="email" class="w-full" placeholder="Email" />
+                        <form @submit.prevent="onSubmit">
+                            <InputText type="text" v-model="username" class="w-full" placeholder="Username or email" />
                             <InputText type="password" v-model="password" class="w-full mt-4" placeholder="Password" />
                             <div class="my-8 flex items-center justify-between">
                                 <div class="flex items-center gap-2">

@@ -4,12 +4,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as bcrypt from "https://esm.sh/bcryptjs@2.4.3";
 import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const DEFAULT_FRONTEND = Deno.env.get("FRONTEND_ORIGIN") || "http://localhost:4200";
+
+function buildCorsHeaders(origin: string) {
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
 
 serve(async (req) => {
+  const origin = req.headers.get("origin") || DEFAULT_FRONTEND;
+  const corsHeaders = buildCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -24,14 +32,14 @@ serve(async (req) => {
 
     if (!supabaseUrl || !serviceKey) {
       console.error("Missing Supabase environment configuration");
-      return jsonResponse({ error: "Server configuration error" }, 500);
+      return jsonResponse({ error: "Server configuration error" }, 500, corsHeaders);
     }
 
     const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
     const payload = await req.json();
 
     if (!payload || !payload.username || !payload.password || !payload.email) {
-      return jsonResponse({ error: "username, email and password are required" }, 400);
+      return jsonResponse({ error: "username, email and password are required" }, 400, corsHeaders);
     }
 
     const username = String(payload.username).trim();
@@ -39,13 +47,13 @@ serve(async (req) => {
     const password = String(payload.password);
 
     if (username.length < 3 || password.length < 8 || !email.includes("@")) {
-      return jsonResponse({ error: "Invalid input" }, 400);
+      return jsonResponse({ error: "Invalid input" }, 400, corsHeaders);
     }
 
     // Ensure username uniqueness
     const { data: existing } = await supabase.from("master_users").select("user_id").eq("username", username).limit(1);
     if (existing && existing.length) {
-      return jsonResponse({ error: "Username already taken" }, 409);
+      return jsonResponse({ error: "Username already taken" }, 409, corsHeaders);
     }
 
     // Hash password with bcrypt
@@ -64,7 +72,7 @@ serve(async (req) => {
 
     if (error) {
       console.error("master_users insert error:", error.message);
-      return jsonResponse({ error: "Failed to create user" }, 500);
+      return jsonResponse({ error: "Failed to create user" }, 500, corsHeaders);
     }
 
     const created = Array.isArray(data) && data.length ? data[0] : data;
@@ -77,7 +85,7 @@ serve(async (req) => {
     const jwtSecret = Deno.env.get("AUTH_JWT_SECRET");
     if (!jwtSecret) {
       console.error("Missing AUTH_JWT_SECRET");
-      return jsonResponse({ error: "Server configuration error" }, 500);
+      return jsonResponse({ error: "Server configuration error" }, 500, corsHeaders);
     }
 
     const cryptoKey = await crypto.subtle.importKey(
@@ -99,17 +107,24 @@ serve(async (req) => {
       cryptoKey
     );
 
-    return jsonResponse({ success: true, user: created, token }, 201);
+    const maxAge = 60 * 60; // 1 hour
+    const cookie = `hb_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+
+    return jsonResponse({ success: true, user: created, token }, 201, { "Set-Cookie": cookie, ...corsHeaders });
   } catch (err) {
     console.error("auth-signup error:", err);
-    return jsonResponse({ error: "Internal server error" }, 500);
+    return jsonResponse({ error: "Internal server error" }, 500, corsHeaders);
   }
 });
 
-function jsonResponse(body: Record<string, unknown>, status = 200) {
+function jsonResponse(body: Record<string, unknown>, status = 200, extraHeaders: Record<string, string> = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...extraHeaders,
+  };
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers,
   });
 }
 

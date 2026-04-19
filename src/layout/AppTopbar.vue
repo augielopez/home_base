@@ -102,13 +102,14 @@ function showRightMenu() {
 
 async function handleLogout() {
     try {
-        // TODO: Add Supabase logout when auth is implemented
-        // await supabaseClient.auth.signOut();
-        
+        const functionsUrl = import.meta.env.VITE_FUNCTIONS_URL || '';
+        await fetch(functionsUrl + '/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+        });
         // Clear any local storage/session storage if needed
         // localStorage.clear();
-        
-        // Navigate to login page
         await router.push({ name: 'login' });
     } catch (error) {
         console.error('Logout error:', error);

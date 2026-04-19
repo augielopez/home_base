@@ -5,6 +5,7 @@ import LazyImageWidget from '@/components/landing/LazyImageWidget.vue';
 import LogoWidget from '@/components/landing/LogoWidget.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import * as auth from '@/lib/api/auth';
 
 const username = ref('');
 const email = ref('');
@@ -13,8 +14,14 @@ const remember = ref(false);
 
 const router = useRouter();
 
-function navigateToVerification() {
-    router.push({ path: '/auth/register/verification' });
+async function onRegister() {
+  try {
+    await auth.signup(username.value, email.value, password.value);
+    router.push({ path: '/dashboard' });
+  } catch (err) {
+    console.error('Signup failed', err);
+    alert(err?.body?.error || 'Registration failed');
+  }
 }
 </script>
 
@@ -45,7 +52,7 @@ function navigateToVerification() {
                                 <label for="remember" class="body-small"> <span class="label-small text-surface-950 dark:text-surface-0">I have read the </span>Terms and Conditions </label>
                             </div>
                         </div>
-                        <button @click="navigateToVerification" type="button" class="body-button w-full">Register</button>
+                        <button @click="onRegister" type="button" class="body-button w-full">Register</button>
                         <div class="mt-8 body-small text-center lg:text-left">Already have an account? <router-link to="/auth/login" class="text-primary-500 hover:underline"> Login</router-link></div>
                     </div>
                 </div>
