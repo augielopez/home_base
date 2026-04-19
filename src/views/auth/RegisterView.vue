@@ -17,7 +17,7 @@ const router = useRouter();
 async function onRegister() {
   try {
     await auth.signup(username.value, email.value, password.value);
-    router.push({ path: '/dashboard' });
+    router.push({ path: '/' });
   } catch (err) {
     console.error('Signup failed', err);
     alert(err?.body?.error || 'Registration failed');
