@@ -1,0 +1,10 @@
+{
+    "rewrites": [
+        {
+            "source": "/:path*",
+            "destination": "/index.html"
+        }
+    ],
+    "trailingSlash": false,
+    "buildCommand": "bash .vercel/submodule-workaround.sh && npm run build"
+}

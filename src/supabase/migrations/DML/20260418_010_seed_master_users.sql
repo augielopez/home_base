@@ -1,0 +1,33 @@
+
+INSERT INTO master_users (
+                          FIRST_NAME,
+                          LAST_NAME,
+                          PHONE_NUMBER,
+                          EMAIL,
+                          ADDRESS,
+                          BIRTHDAY,
+                          PHONE_CARRIER,
+                          NOTES,
+                          NUMBER_OF_INVITES,
+                          NUMBER_ATTENDED,
+                          CREATED_AT,
+                          UPDATED_AT,
+                          USERNAME,
+                          PASSWORD_HASH,
+                          PARTY_SIZE)
+SELECT FIRST_NAME,
+       LAST_NAME,
+       PHONE_NUMBER,
+       EMAIL,
+       ADDRESS,
+       BIRTHDAY,
+       PHONE_CARRIER,
+       NOTES,
+       NUMBER_OF_INVITES,
+       NUMBER_ATTENDED,
+       CREATED_AT,
+       UPDATED_AT,
+       USERNAME,
+       PASSWORD_HASH,
+       PARTY_SIZE
+FROM master_contacts;
