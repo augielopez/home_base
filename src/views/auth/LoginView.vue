@@ -41,7 +41,7 @@ async function onSubmit() {
                             <span class="flex-1 h-[1px] bg-surface-200 dark:bg-surface-800" />
                         </div>
                         <form @submit.prevent="onSubmit">
-                            <InputText type="text" v-model="username" class="w-full" placeholder="Username or email" />
+                            <InputText type="text" v-model="username" class="w-full" placeholder="Username" />
                             <InputText type="password" v-model="password" class="w-full mt-4" placeholder="Password" />
                             <div class="my-8 flex items-center justify-between">
                                 <div class="flex items-center gap-2">

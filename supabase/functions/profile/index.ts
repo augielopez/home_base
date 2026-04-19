@@ -46,7 +46,18 @@ serve(async (req) => {
     }
 
     const user = Array.isArray(data) && data.length ? data[0] : null;
-    return new Response(JSON.stringify({ success: true, user }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    // Fetch aggregated permissions from the view (vw_user_permissions)
+    const { data: permsData, error: permsError } = await supabase
+      .from("vw_user_permissions")
+      .select("modules_perms")
+      .eq("user_id", sub)
+      .limit(1)
+      .single();
+
+    const modules_perms = permsError || !permsData ? {} : (permsData.modules_perms || {});
+
+    return new Response(JSON.stringify({ success: true, user, modules_perms }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500, headers: corsHeaders });
   }
