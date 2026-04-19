@@ -17,3 +17,6 @@ CREATE TABLE master_users
     password_hash     TEXT,
     party_size        SMALLINT                 DEFAULT 4                 NOT NULL
 );
+
+ALTER TABLE master_users
+ADD COLUMN profile_image_path TEXT;

@@ -136,9 +136,9 @@ serve(async (req) => {
       cryptoKey
     );
 
-    // set cookie (httpOnly, Secure, SameSite=Lax)
+    // set cookie (httpOnly, Secure, SameSite=None for cross-site cookies)
     const maxAge = 60 * 60; // 1 hour
-    const cookie = `hb_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+    const cookie = `hb_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`;
 
     return jsonResponse({ success: true, user, token }, 200, { "Set-Cookie": cookie, ...corsHeaders });
   } catch (err) {

@@ -23,8 +23,8 @@ serve(async (req) => {
     return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
   }
 
-  // Clear cookie
-  const cookie = `hb_token=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
+  // Clear cookie (SameSite=None to match issuance)
+  const cookie = `hb_token=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0`;
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
     headers: { ...corsHeaders, "Content-Type": "application/json", "Set-Cookie": cookie },

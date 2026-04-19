@@ -1,10 +1,32 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import AppMenuItem from './AppMenuItem.vue';
+import { loadPermissions, getModules } from '@/lib/composables/usePermissions';
 
-const model = ref([
-    // Add your UI Kit menu items here
-]);
+const model = ref([]);
+
+onMounted(async () => {
+  try {
+    await loadPermissions();
+    const modules = getModules();
+    const moduleItems = modules.map((code) => {
+      const label = code.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const to = '/' + code.toLowerCase().replace(/_/g, '-');
+      return { label, icon: 'pi pi-fw pi-folder', to };
+    });
+
+    model.value = [
+      {
+        label: 'Modules',
+        icon: 'pi pi-fw pi-th-large',
+        items: moduleItems
+      },
+      { separator: true }
+    ];
+  } catch (err) {
+    console.error('Failed to load modules for UI kit menu', err);
+  }
+});
 </script>
 
 <template>

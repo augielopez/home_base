@@ -108,7 +108,7 @@ serve(async (req) => {
     );
 
     const maxAge = 60 * 60; // 1 hour
-    const cookie = `hb_token=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+    const cookie = `hb_token=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`;
 
     return jsonResponse({ success: true, user: created, token }, 201, { "Set-Cookie": cookie, ...corsHeaders });
   } catch (err) {
