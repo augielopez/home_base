@@ -91,6 +91,15 @@ const routes = [
                 component: () => import('@/modules/productivity-base/views/ProductivityTodosView.vue')
             },
             {
+                path: '/productivity-base/session/:sessionId',
+                name: 'productivity-session',
+                meta: {
+                    breadcrumb: ['Productivity Base', 'Session'],
+                    title: 'Productivity Session'
+                },
+                component: () => import('@/modules/productivity-base/views/ProductivitySessionView.vue')
+            },
+            {
                 path: '/apps/mail',
                 meta: {
                     breadcrumb: ['Mail', 'Inbox'],
