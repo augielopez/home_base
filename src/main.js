@@ -5,6 +5,7 @@ import router from './router';
 import BlockViewer from '@/components/BlockViewer.vue';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
+import { createPinia } from 'pinia';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
@@ -14,6 +15,7 @@ import '@/assets/tailwind.css';
 
 const app = createApp(App);
 
+app.use(createPinia());
 app.use(router);
 
 const MyPreset = definePreset(Aura, {

@@ -82,8 +82,58 @@ const routes = [
                 component: () => import('@/views/apps/tasklist/Index.vue')
             },
             {
+                path: '/balance-base',
+                name: 'balance-base-dashboard',
+                meta: {
+                    breadcrumb: ['Balance Base', 'Dashboard'],
+                    title: 'Balance Base Dashboard'
+                },
+                component: () => import('@/modules/balance-base/views/DashboardPage.vue')
+            },
+            {
+                path: '/balance-base/accounts',
+                name: 'balance-base-accounts',
+                meta: {
+                    breadcrumb: ['Balance Base', 'Accounts'],
+                    title: 'Accounts'
+                },
+                component: () => import('@/modules/balance-base/views/AccountsPage.vue')
+            },
+            {
+                path: '/balance-base/transactions',
+                name: 'balance-base-transactions',
+                meta: {
+                    breadcrumb: ['Balance Base', 'Transactions'],
+                    title: 'Transactions'
+                },
+                component: () => import('@/modules/balance-base/views/TransactionsPage.vue')
+            },
+            {
+                path: '/balance-base/bills',
+                name: 'balance-base-bills',
+                meta: {
+                    breadcrumb: ['Balance Base', 'Bills'],
+                    title: 'Bills'
+                },
+                component: () => import('@/modules/balance-base/views/BillsPage.vue')
+            },
+            {
+                path: '/balance-base/bills-recon',
+                name: 'balance-base-bills-recon',
+                meta: {
+                    breadcrumb: ['Balance Base', 'Bills Recon'],
+                    title: 'Bills Recon'
+                },
+                component: () => import('@/modules/balance-base/views/BillsReconPage.vue')
+            },
+            {
                 path: '/productivity-base',
-                name: 'productivity-base',
+                name: 'productivity-base-dashboard',
+                redirect: '/productivity-base/todos'
+            },
+            {
+                path: '/productivity-base/todos',
+                name: 'productivity-base-todos',
                 meta: {
                     breadcrumb: ['Productivity Base', 'Todos'],
                     title: 'Productivity Base'

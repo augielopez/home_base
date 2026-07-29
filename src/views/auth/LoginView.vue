@@ -3,18 +3,25 @@ import AppleWidget from '@/components/auth/AppleWidget.vue';
 import GoogleWidget from '@/components/auth/GoogleWidget.vue';
 import Logo from '@/components/landing/LogoWidget.vue';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import * as auth from '@/lib/api/auth';
 
 const username = ref('');
 const password = ref('');
 const remember = ref(false);
 const router = useRouter();
+const route = useRoute();
+
+function redirectTarget() {
+  const redirect = route.query.redirect;
+  if (typeof redirect === 'string' && redirect.startsWith('/')) return redirect;
+  return '/';
+}
 
 async function onSubmit() {
   try {
     await auth.login(username.value, password.value);
-    router.push({ path: '/' });
+    router.push(redirectTarget());
   } catch (err) {
     console.error('Login failed', err);
     alert(err?.body?.error || 'Login failed');

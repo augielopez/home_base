@@ -1,3 +1,5 @@
+import { authHeaders, clearHbToken, setHbToken } from '@/lib/auth/token';
+
 const FUNCTIONS_BASE = import.meta.env.VITE_FUNCTIONS_URL || '';
 
 async function callFunction(path: string, opts: RequestInit = {}) {
@@ -5,23 +7,31 @@ async function callFunction(path: string, opts: RequestInit = {}) {
   const res = await fetch(url, {
     ...opts,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    headers: authHeaders((opts.headers as Record<string, string>) || {}),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw { status: res.status, body: json };
   return json;
 }
 
-export function login(username: string, password: string) {
-  return callFunction('auth-login', { method: 'POST', body: JSON.stringify({ username, password }) });
+export async function login(username: string, password: string) {
+  const json = await callFunction('auth-login', { method: 'POST', body: JSON.stringify({ username, password }) });
+  if (json?.token) setHbToken(String(json.token));
+  return json;
 }
 
-export function signup(username: string, email: string, password: string) {
-  return callFunction('auth-signup', { method: 'POST', body: JSON.stringify({ username, email, password }) });
+export async function signup(username: string, email: string, password: string) {
+  const json = await callFunction('auth-signup', { method: 'POST', body: JSON.stringify({ username, email, password }) });
+  if (json?.token) setHbToken(String(json.token));
+  return json;
 }
 
-export function logout() {
-  return callFunction('logout', { method: 'POST' });
+export async function logout() {
+  try {
+    return await callFunction('logout', { method: 'POST' });
+  } finally {
+    clearHbToken();
+  }
 }
 
 export function getProfile() {

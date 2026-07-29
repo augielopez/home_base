@@ -2,6 +2,7 @@
 import { useLayout } from '@/layout/composables/layout';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import * as auth from '@/lib/api/auth';
 import AppBreadcrumb from './AppBreadcrumb.vue';
 
 const router = useRouter();
@@ -102,17 +103,11 @@ function showRightMenu() {
 
 async function handleLogout() {
     try {
-        const functionsUrl = import.meta.env.VITE_FUNCTIONS_URL || '';
-        await fetch(functionsUrl + '/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-        });
-        // Clear any local storage/session storage if needed
-        // localStorage.clear();
+        await auth.logout();
         await router.push({ name: 'login' });
     } catch (error) {
         console.error('Logout error:', error);
+        await router.push({ name: 'login' });
     }
 }
 </script>
