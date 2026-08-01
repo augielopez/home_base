@@ -68,7 +68,7 @@ function ruleMatches(rule: CategorizationRule, transaction: Record<string, unkno
 }
 
 function shouldCategorizeTransaction(transaction: Record<string, unknown>): boolean {
-  const matchMethod = String(transaction.match_method || "unmatched").toLowerCase();
+  const matchMethod = String(transaction.category_match_method || "unmatched").toLowerCase();
   if (matchMethod === "manual" || matchMethod === "ai") return false;
 
   const categoryId = transaction.category_id;
@@ -99,7 +99,7 @@ export async function applyCategorizationRules(supabase: any, userId: string): P
 
   const { data: transactions, error: txError } = await supabase
     .from("hb_transactions")
-    .select("id, name, description, merchant_name, category_id, match_method")
+    .select("id, name, description, merchant_name, category_id, category_match_method")
     .eq("user_id", userId)
     .eq("import_method", "simplefin")
     .order("date", { ascending: false })
@@ -124,7 +124,10 @@ export async function applyCategorizationRules(supabase: any, userId: string): P
       continue;
     }
 
-    if (String(transaction.category_id || "") === String(matched.category_id) && String(transaction.match_method || "") === "auto") {
+    if (
+      String(transaction.category_id || "") === String(matched.category_id) &&
+      String(transaction.category_match_method || "") === "auto"
+    ) {
       skipped += 1;
       continue;
     }
@@ -133,7 +136,7 @@ export async function applyCategorizationRules(supabase: any, userId: string): P
       .from("hb_transactions")
       .update({
         category_id: matched.category_id,
-        match_method: "auto",
+        category_match_method: "auto",
         category_confidence: 0.9,
       })
       .eq("id", transaction.id)

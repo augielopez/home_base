@@ -83,7 +83,7 @@ serve(async (req) => {
         .from("hb_transactions")
         .update({
           category_id: categoryId,
-          match_method: "manual",
+          category_match_method: categoryId ? "manual" : "unmatched",
           category_confidence: categoryId ? 1.0 : 0.0,
         })
         .eq("id", transactionId)

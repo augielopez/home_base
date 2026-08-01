@@ -27,6 +27,22 @@ function formatCurrency(value: number, currency = 'USD') {
 function onCategoryChange(transactionId: string, categoryId: string | null) {
     emit('updateCategory', { transactionId, categoryId: categoryId || null });
 }
+
+function matchMethodLabel(method: string | null | undefined) {
+    const value = String(method || '').toLowerCase();
+    if (value === 'manual') return 'Manual';
+    if (value === 'auto') return 'Rules';
+    if (value === 'ai') return 'AI';
+    return null;
+}
+
+function matchMethodClass(method: string | null | undefined) {
+    const value = String(method || '').toLowerCase();
+    if (value === 'manual') return 'bg-surface-100 text-surface-700 dark:bg-surface-800 dark:text-surface-200';
+    if (value === 'auto') return 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300';
+    if (value === 'ai') return 'bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300';
+    return '';
+}
 </script>
 
 <template>
@@ -61,19 +77,33 @@ function onCategoryChange(transactionId: string, categoryId: string | null) {
                         </td>
                         <td class="py-3 pr-4 text-muted-color">{{ transaction.payee || '-' }}</td>
                         <td class="py-3 pr-4 text-muted-color">{{ transaction.account?.name || '-' }}</td>
-                        <td class="py-3 pr-4 min-w-[12rem]">
-                            <Select
-                                :model-value="transaction.category_id"
-                                :options="categories"
-                                option-label="name"
-                                option-value="id"
-                                placeholder="Uncategorized"
-                                show-clear
-                                class="w-full"
-                                :disabled="updatingId === transaction.id"
-                                :loading="updatingId === transaction.id"
-                                @update:model-value="onCategoryChange(transaction.id, $event)"
-                            />
+                        <td class="py-3 pr-4 min-w-[14rem]">
+                            <div class="flex flex-col gap-1.5">
+                                <Select
+                                    :model-value="transaction.category_id"
+                                    :options="categories"
+                                    option-label="name"
+                                    option-value="id"
+                                    placeholder="Uncategorized"
+                                    show-clear
+                                    class="w-full"
+                                    :disabled="updatingId === transaction.id"
+                                    :loading="updatingId === transaction.id"
+                                    @update:model-value="onCategoryChange(transaction.id, $event)"
+                                />
+                                <span
+                                    v-if="matchMethodLabel(transaction.category_match_method) && transaction.category_id"
+                                    class="inline-flex w-fit rounded-border px-1.5 py-0.5 text-[11px] font-medium"
+                                    :class="matchMethodClass(transaction.category_match_method)"
+                                    :title="
+                                        transaction.category_confidence != null
+                                            ? `Confidence ${Math.round(Number(transaction.category_confidence) * 100)}%`
+                                            : undefined
+                                    "
+                                >
+                                    {{ matchMethodLabel(transaction.category_match_method) }}
+                                </span>
+                            </div>
                         </td>
                         <td class="py-3 text-right font-semibold" :class="transaction.amount < 0 ? 'text-red-500' : 'text-green-500'">
                             {{ formatCurrency(transaction.amount, transaction.account?.currency || 'USD') }}

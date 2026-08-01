@@ -29,6 +29,12 @@ export type FinancialTransaction = {
     payee: string | null;
     category_id: string | null;
     category: string | null;
+    category_match_method: 'unmatched' | 'manual' | 'auto' | 'ai' | string | null;
+    category_confidence: number | null;
+    bill_id: string | null;
+    match_method: 'unmatched' | 'manual' | 'auto' | 'ai' | string | null;
+    match_confidence: number | null;
+    recon_excluded: boolean;
     pending: boolean;
     reviewed: boolean;
     currency: string;
@@ -81,6 +87,8 @@ export type CategorizeResult = {
     examined: number;
     updated: number;
     skipped: number;
+    lowConfidence?: number;
+    domain?: string;
     error?: string;
 };
 
@@ -90,6 +98,77 @@ export type TransactionFilters = {
     categoryId: string | null;
     startDate: string | null;
     endDate: string | null;
+};
+
+export type BillFrequency = {
+    id: string;
+    name: string;
+    description: string | null;
+};
+
+export type Bill = {
+    id: string;
+    bill_name: string;
+    amount_due: number | null;
+    due_date: string | null;
+    status: string;
+    description: string | null;
+    frequency_id: string | null;
+    frequency_name: string | null;
+    last_paid: string | null;
+    is_fixed_bill: boolean;
+    is_included_in_monthly_payment: boolean;
+    created_at: string;
+    updated_at: string;
+    created_by: string;
+    updated_by: string;
+};
+
+export type BillInput = {
+    bill_name: string;
+    amount_due: number | null;
+    due_date: string | null;
+    status: string;
+    description: string | null;
+    frequency_id: string | null;
+    last_paid: string | null;
+    is_fixed_bill: boolean;
+    is_included_in_monthly_payment: boolean;
+};
+
+export const BILL_STATUS_OPTIONS = [
+    { label: 'Active', value: 'Active' },
+    { label: 'Inactive', value: 'Inactive' }
+] as const;
+
+export type BillMatchSuggestion = {
+    bill_id: string;
+    bill_name: string;
+    confidence: number;
+    reasons: string[];
+};
+
+export type ReconTransaction = {
+    id: string;
+    date: string;
+    amount: number;
+    description: string | null;
+    payee: string | null;
+    bill_id: string | null;
+    bill_name: string | null;
+    match_method: string | null;
+    match_confidence: number | null;
+    recon_excluded: boolean;
+    suggestion: BillMatchSuggestion | null;
+};
+
+export type BillsReconMonth = {
+    year: number;
+    month: number;
+    unmatched: ReconTransaction[];
+    matched: ReconTransaction[];
+    excluded: ReconTransaction[];
+    bills: Bill[];
 };
 
 type HbBankAccountRow = {
@@ -123,6 +202,12 @@ type HbTransactionRow = {
     import_method: string | null;
     source_metadata: JsonRecord | null;
     category_id: string | null;
+    category_match_method?: string | null;
+    category_confidence?: number | null;
+    bill_id?: string | null;
+    match_method?: string | null;
+    match_confidence?: number | null;
+    recon_excluded?: boolean | null;
     created_at: string;
     updated_at: string;
     category?: { name: string } | null;
@@ -184,6 +269,12 @@ export function mapHbTransaction(row: HbTransactionRow, account?: FinancialAccou
         payee: row.merchant_name,
         category_id: row.category_id,
         category: categoryFromRow(row),
+        category_match_method: row.category_match_method || (row.category_id ? 'auto' : 'unmatched'),
+        category_confidence: row.category_confidence == null ? null : Number(row.category_confidence),
+        bill_id: row.bill_id || null,
+        match_method: row.match_method || (row.bill_id ? 'manual' : 'unmatched'),
+        match_confidence: row.match_confidence == null ? null : Number(row.match_confidence),
+        recon_excluded: Boolean(row.recon_excluded),
         pending: row.pending,
         reviewed: row.is_reconciled,
         currency: row.iso_currency_code || account?.currency || 'USD',
@@ -218,5 +309,51 @@ export function mapHbTransactionCategory(row: {
         color: row.color ?? null,
         icon: row.icon ?? null,
         is_active: row.is_active !== false
+    };
+}
+
+type HbBillRow = {
+    id: string;
+    bill_name: string | null;
+    amount_due: number | null;
+    due_date: string | null;
+    status: string | null;
+    description: string | null;
+    frequency_id: string | null;
+    last_paid: string | null;
+    is_fixed_bill: boolean | null;
+    is_included_in_monthly_payment: boolean | null;
+    created_at: string;
+    updated_at: string;
+    created_by: string;
+    updated_by: string;
+    frequency?: { id: string; name: string } | null;
+};
+
+export function mapHbBill(row: HbBillRow): Bill {
+    return {
+        id: row.id,
+        bill_name: row.bill_name || 'Untitled bill',
+        amount_due: row.amount_due == null ? null : Number(row.amount_due),
+        due_date: row.due_date,
+        status: row.status || 'Active',
+        description: row.description,
+        frequency_id: row.frequency_id,
+        frequency_name: row.frequency?.name || null,
+        last_paid: row.last_paid,
+        is_fixed_bill: Boolean(row.is_fixed_bill),
+        is_included_in_monthly_payment: row.is_included_in_monthly_payment !== false,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        created_by: row.created_by,
+        updated_by: row.updated_by
+    };
+}
+
+export function mapHbFrequency(row: { id: string; name: string; description?: string | null }): BillFrequency {
+    return {
+        id: row.id,
+        name: row.name,
+        description: row.description ?? null
     };
 }
